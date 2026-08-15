@@ -9,6 +9,7 @@ import (
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	gormlogger "gorm.io/gorm/logger"
 )
 
 func NewPostgres(cfg configs.DatabaseConfig) (*gorm.DB, error) {
@@ -25,15 +26,23 @@ func NewPostgres(cfg configs.DatabaseConfig) (*gorm.DB, error) {
 
 	db, err := gorm.Open(
 		postgres.Open(dsnURL.String()),
-		&gorm.Config{},
+		&gorm.Config{
+			Logger: gormlogger.Default.LogMode(gormlogger.Silent),
+		},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to initialize PostgreSQL: %w", err)
+		return nil, fmt.Errorf(
+			"failed to initialize PostgreSQL: %w",
+			err,
+		)
 	}
 
 	sqlDB, err := db.DB()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get SQL database: %w", err)
+		return nil, fmt.Errorf(
+			"failed to get SQL database: %w",
+			err,
+		)
 	}
 
 	sqlDB.SetMaxOpenConns(25)
@@ -42,7 +51,10 @@ func NewPostgres(cfg configs.DatabaseConfig) (*gorm.DB, error) {
 	sqlDB.SetConnMaxIdleTime(10 * time.Minute)
 
 	if err := sqlDB.Ping(); err != nil {
-		return nil, fmt.Errorf("failed to ping PostgreSQL: %w", err)
+		return nil, fmt.Errorf(
+			"failed to ping PostgreSQL: %w",
+			err,
+		)
 	}
 
 	return db, nil
